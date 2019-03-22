@@ -9,9 +9,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"golang.org/x/crypto/ssh"
+	"gopkg.in/cheggaaa/pb.v1"
 )
 
 // Struct to hold both Keys
@@ -44,16 +46,20 @@ func GenKeyPair() (string, string, error) {
 
 func main() {
 	jsonFile, err := os.Open("names.json")
-
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var nameList []string
-	json.Unmarshal([]byte(byteValue), &nameList)
 
+	json.Unmarshal([]byte(byteValue), &nameList)
 	var jsonMap = make(map[string]PubPriv)
+
+	fmt.Println("Starting key generation. This is going to take awhile...")
+
+	count := len(nameList)
+	bar := pb.StartNew(count)
 
 	for i, _ := range nameList {
 		pub, priv, err := GenKeyPair()
@@ -66,16 +72,28 @@ func main() {
 
 		if err != nil {
 			fmt.Println(err)
+			continue
 		}
 
 		keyPair := PubPriv{string(pub), string(priv)}
 
 		jsonMap[nameList[i]] = keyPair
 
+		bar.Increment()
+
 	}
 
-	jsonData, _ := json.MarshalIndent(jsonMap, "", " ")
-	_ = ioutil.WriteFile("output.json", jsonData, 0644)
+	bar.FinishPrint("Finished Generating. Writing to File...")
+
+	jsonData, err := json.MarshalIndent(jsonMap, "", " ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ioutil.WriteFile("output.json", jsonData, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("Done")
 }
