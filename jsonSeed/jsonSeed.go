@@ -11,9 +11,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"sync"
-	_ "time"
 
+	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/cheggaaa/pb.v1"
 )
@@ -59,10 +60,10 @@ func genWorker(id int, wg *sync.WaitGroup, mux *sync.Mutex, jobs <-chan string, 
 		keyPair := PubPriv{codeName, string(pub), string(priv)}
 		//fmt.Printf("%s new struct\n", codeName)
 
-		mux.Lock()
+		mux.Lock() // lock resources
 		*list = append(*list, keyPair)
 		bar.Increment()
-		mux.Unlock()
+		mux.Unlock() // unlock resources
 
 		wg.Done()
 	}
@@ -79,14 +80,9 @@ func CreateJsonSeed() {
 
 	json.Unmarshal([]byte(byteValue), &nameList)
 
-	fmt.Println("Starting key generation. This is going to take awhile...")
-
 	jsonList := make([]PubPriv, 0)
 
-	// Max is len(nameList)
-	//nameNum := len(nameList)
-	nameNum := 20
-	bar := pb.StartNew(nameNum)
+	nameNum := len(nameList)
 
 	// Channels for workers
 	jobs := make(chan string, nameNum)
@@ -95,7 +91,13 @@ func CreateJsonSeed() {
 	var mux sync.Mutex
 
 	// init worker
-	workerNum := 2
+	workerNum := runtime.NumCPU()
+	red := color.New(color.FgRed).SprintFunc()
+	fmt.Printf("Starting key generation with [%s] workers. This is going to take awhile ...\n",
+		red(workerNum))
+
+	color.Set(color.FgMagenta, color.Bold)
+	bar := pb.StartNew(nameNum)
 	for i := 0; i < workerNum; i++ {
 		go genWorker(1, &wg, &mux, jobs, &jsonList, bar)
 	}
@@ -108,9 +110,12 @@ func CreateJsonSeed() {
 
 	wg.Wait()
 	close(jobs)
+	color.Unset()
 
+	color.Set(color.FgCyan)
 	bar.FinishPrint("Key Generation Completed")
-	fmt.Printf("%d Keys Generated\n", nameNum)
+	fmt.Printf("%d Keys Generated\n", red(nameNum))
+	color.Unset()
 
 	jsonData, err := json.MarshalIndent(jsonList, "", " ")
 	if err != nil {
@@ -123,4 +128,5 @@ func CreateJsonSeed() {
 	}
 
 	log.Println("Done")
+	fmt.Println()
 }

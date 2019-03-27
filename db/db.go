@@ -8,6 +8,7 @@ import (
 	_ "log"
 	"os"
 	"path/filepath"
+	"time"
 
 	//uncheck first 2 to enable migrate
 	_ "github.com/golang-migrate/migrate"
@@ -15,6 +16,7 @@ import (
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
 
+	"github.com/fatih/color"
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
@@ -77,20 +79,28 @@ func InitDB() (err error) {
 		return err
 	}
 
-	if _, err = db.Query("DELETE FROM profiles"); err != nil {
-		return err
+	red := color.New(color.FgRed).SprintFunc()
+	color.Set(color.FgCyan)
+	fmt.Printf("Resetting Database in ")
+	for i := 5; i > 0; i-- {
+		fmt.Printf("%s...\n", red(i))
+		time.Sleep(time.Second)
 	}
+	fmt.Println(red("0"))
 
 	if _, err = db.Query("DELETE FROM keys"); err != nil {
 		return err
 	}
+	if _, err = db.Query("DELETE FROM profiles"); err != nil {
+		return err
+	}
 
+	fmt.Println("Database", red("Reset"))
+	fmt.Println()
 	return nil
 }
 
 func InsertKeys() (err error) {
-	fmt.Println("Opening output.json")
-
 	jsonPath, _ := filepath.Abs("jsonSeed/output.json")
 	keyJson, err := os.Open(jsonPath)
 	if err != nil {
@@ -123,6 +133,7 @@ func InsertKeys() (err error) {
 	VALUES($1, $2, $3, DEFAULT)
 	RETURNING id`
 
+	color.Set(color.FgMagenta)
 	count := len(keyList)
 	bar := pb.StartNew(count)
 	for _, key := range keyList {
@@ -144,6 +155,11 @@ func InsertKeys() (err error) {
 		bar.Increment()
 	}
 	bar.FinishPrint("Finished injesting keys.")
+	color.Unset()
 
+	red := color.New(color.FgRed).SprintFunc()
+	fmt.Printf("%s Rows Inserted\n", red(count))
+
+	fmt.Println()
 	return nil
 }

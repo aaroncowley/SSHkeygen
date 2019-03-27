@@ -8,30 +8,37 @@ import (
 
 	db "./db"
 	seed "./jsonSeed"
+	"github.com/fatih/color"
 )
 
 func menu() {
 	for {
 		fmt.Println("What would you like to do?")
-
+		color.Set(color.FgCyan)
 		fmt.Printf("(1) - Seed Artifacts\n" +
 			"(2) - Insert Artifacts into db\n" +
-			"(3) - Read Artifact from db\n" +
-			"(4) - Reinit Database\n" +
+			"(3) - Read Artifacts from db\n" +
+			"(4) - Reset Database\n" +
 			"(5) - Exit\n")
-		fmt.Printf("CLI> ")
+		color.Unset()
+
+		fmt.Printf(color.GreenString("CLI> "))
 		//read one character
 		reader := bufio.NewReader(os.Stdin)
 		char, _, _ := reader.ReadRune()
+
+		red := color.New(color.FgRed).SprintFunc()
 
 		switch userInput := char; userInput {
 		case '1':
 			fmt.Println("Seed Arifacts chosen")
 
 			fmt.Println("Start Seeding Now?")
-			fmt.Println("Confirm [Y] or [N]")
+			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
+
 			reader := bufio.NewReader(os.Stdin)
 			char, _, _ := reader.ReadRune()
+			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
 				seed.CreateJsonSeed()
@@ -43,9 +50,11 @@ func menu() {
 			fmt.Println("Insert Artifacts into db chosen")
 
 			fmt.Println("Database will be loaded from jsonSeed/output.json.")
-			fmt.Println("Confirm [Y] or [N]")
+			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
+
 			reader := bufio.NewReader(os.Stdin)
 			char, _, _ := reader.ReadRune()
+			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
 				if err := db.InsertKeys(); err != nil {
@@ -56,9 +65,12 @@ func menu() {
 			}
 
 		case '3':
-			fmt.Println("Read Artifact from db chosen")
+			fmt.Println("Read Artifacts from db chosen")
+			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
+
 			reader := bufio.NewReader(os.Stdin)
 			char, _, _ := reader.ReadRune()
+			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
 				seed.CreateJsonSeed()
@@ -67,11 +79,14 @@ func menu() {
 			}
 
 		case '4':
-			fmt.Println("Reinit Database chosen")
+			fmt.Println("Reinit Database chosen\n")
+
+			fmt.Println("Are you sure?")
+			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
 
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Println("Confirm [Y] or [N]")
 			char, _, _ := reader.ReadRune()
+			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
 				if err := db.InitDB(); err != nil {
