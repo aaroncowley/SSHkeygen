@@ -14,13 +14,12 @@ func menu() {
 	for {
 		fmt.Println("What would you like to do?")
 
-		fmt.Println(`
-		(1) - Seed Artifacts
-		(2) - Insert Artifacts into db 
-		(3) - Read Artifact from db
-		(4) - Reinit Database
-		(5) - Exit`)
-
+		fmt.Printf("(1) - Seed Artifacts\n" +
+			"(2) - Insert Artifacts into db\n" +
+			"(3) - Read Artifact from db\n" +
+			"(4) - Reinit Database\n" +
+			"(5) - Exit\n")
+		fmt.Printf("CLI> ")
 		//read one character
 		reader := bufio.NewReader(os.Stdin)
 		char, _, _ := reader.ReadRune()
