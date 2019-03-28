@@ -10,9 +10,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	mrand "math/rand"
 	"os"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh"
@@ -69,7 +73,7 @@ func genWorker(id int, wg *sync.WaitGroup, mux *sync.Mutex, jobs <-chan string, 
 	}
 }
 
-func CreateJsonSeed() {
+func CreateJsonSeed(keyNum int) {
 	jsonFile, err := os.Open("jsonSeed/names.json")
 	if err != nil {
 		log.Fatal(err)
@@ -82,29 +86,30 @@ func CreateJsonSeed() {
 
 	jsonList := make([]PubPriv, 0)
 
-	nameNum := len(nameList)
-
 	// Channels for workers
-	jobs := make(chan string, nameNum)
+	jobs := make(chan string, keyNum)
 
 	var wg sync.WaitGroup
 	var mux sync.Mutex
 
 	// init worker
 	workerNum := runtime.NumCPU()
+	nameNum := len(nameList)
 	red := color.New(color.FgRed).SprintFunc()
 	fmt.Printf("Starting key generation with [%s] workers. This is going to take awhile ...\n",
 		red(workerNum))
 
 	color.Set(color.FgMagenta, color.Bold)
-	bar := pb.StartNew(nameNum)
+	bar := pb.StartNew(keyNum)
 	for i := 0; i < workerNum; i++ {
 		go genWorker(1, &wg, &mux, jobs, &jsonList, bar)
 	}
 
 	//fill job queue
-	for _, name := range nameList[:nameNum] {
-		jobs <- name
+	for i := 0; i < keyNum; i++ {
+		now := strconv.FormatInt(time.Now().UnixNano(), 10)
+		codeName := strings.Join([]string{nameList[mrand.Intn(nameNum)], now}, "")
+		jobs <- codeName
 		wg.Add(1)
 	}
 
@@ -114,7 +119,7 @@ func CreateJsonSeed() {
 
 	color.Set(color.FgCyan)
 	bar.FinishPrint("Key Generation Completed")
-	fmt.Printf("%d Keys Generated\n", red(nameNum))
+	fmt.Printf("%s Keys Generated\n", red(nameNum))
 	color.Unset()
 
 	jsonData, err := json.MarshalIndent(jsonList, "", " ")

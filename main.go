@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	db "./db"
 	seed "./jsonSeed"
@@ -33,15 +34,37 @@ func menu() {
 		case '1':
 			fmt.Println("Seed Arifacts chosen")
 
+			fmt.Println("Enter the Amount of Keys to be generated")
+			fmt.Printf("(Enter a value between 1 and 1000000) > ")
+
+			color.Set(color.FgRed)
+			reader := bufio.NewReader(os.Stdin)
+			keyString, _ := reader.ReadString('\n')
+			color.Unset()
+
+			keyString = keyString[:len(keyString)-1]
+
+			keyNum, err := strconv.Atoi(keyString)
+			if err != nil {
+				log.Println(err)
+				log.Println("non numneric value entered, please enter a valid number")
+				continue
+			}
+
+			if keyNum <= 0 {
+				log.Println("Please enter a value greater than 0.")
+				continue
+			}
+
 			fmt.Println("Start Seeding Now?")
 			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
 
-			reader := bufio.NewReader(os.Stdin)
+			reader = bufio.NewReader(os.Stdin)
 			char, _, _ := reader.ReadRune()
 			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
-				seed.CreateJsonSeed()
+				seed.CreateJsonSeed(keyNum)
 			} else {
 				continue
 			}
@@ -73,7 +96,8 @@ func menu() {
 			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
-				seed.CreateJsonSeed()
+				// TODO: This
+				fmt.Println("still in dev")
 			} else {
 				continue
 			}
