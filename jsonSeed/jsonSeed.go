@@ -119,7 +119,7 @@ func CreateJsonSeed(keyNum int) {
 
 	color.Set(color.FgCyan)
 	bar.FinishPrint("Key Generation Completed")
-	fmt.Printf("%s Keys Generated\n", red(nameNum))
+	fmt.Printf("%s Keys Generated\n", red(keyNum))
 	color.Unset()
 
 	jsonData, err := json.MarshalIndent(jsonList, "", " ")
