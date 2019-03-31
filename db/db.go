@@ -163,3 +163,45 @@ func InsertKeys() (err error) {
 	fmt.Println()
 	return nil
 }
+
+func PullNextKey() (keys KeyPair, err error) {
+	err = connDB()
+	if err != nil {
+		return keys, err
+	}
+
+	pullKeyRow := `
+	SELECT profiles.code_name, keys.public_key, keys.private_key, profiles.id
+	FROM keys, profiles
+	WHERE profiles.id = keys.profile_id AND profiles.used != TRUE
+	ORDER BY keys.creation_date DESC
+	LIMIT 1`
+
+	var profID int
+	var retKeys KeyPair
+
+	err = db.QueryRow(pullKeyRow).Scan(
+		&retKeys.CodeName,
+		&retKeys.PublicKey,
+		&retKeys.PrivateKey,
+		&profID)
+	if err != nil {
+		return keys, err
+	}
+
+	//fmt.Printf("%+v\n", retKeys)
+
+	updateUsedRow := `
+	UPDATE profiles SET used = TRUE WHERE id = $1
+	RETURNING code_name`
+
+	var usedCodeName string
+	err = db.QueryRow(updateUsedRow, profID).Scan(&usedCodeName)
+	if err != nil {
+		return keys, err
+	}
+
+	//fmt.Printf("Updated %s as used\n", usedCodeName)
+	keys = retKeys
+	return keys, nil
+}

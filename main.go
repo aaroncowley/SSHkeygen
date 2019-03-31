@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	api "./api"
 	db "./db"
 	seed "./jsonSeed"
 	"github.com/fatih/color"
@@ -18,9 +19,10 @@ func menu() {
 		color.Set(color.FgCyan)
 		fmt.Printf("(1) - Seed Artifacts\n" +
 			"(2) - Insert Artifacts into db\n" +
-			"(3) - Read Artifacts from db\n" +
+			"(3) - Read Next Key from db\n" +
 			"(4) - Reset Database\n" +
-			"(5) - Exit\n")
+			"(5) - Start Server\n" +
+			"(6) - Exit\n")
 		color.Unset()
 
 		fmt.Printf(color.GreenString("CLI> "))
@@ -88,7 +90,7 @@ func menu() {
 			}
 
 		case '3':
-			fmt.Println("Read Artifacts from db chosen")
+			fmt.Println("Read Next Key from db chosen")
 			fmt.Printf("Confirm [%s] or [%s]\n", red("Y"), red("y"))
 
 			reader := bufio.NewReader(os.Stdin)
@@ -96,8 +98,12 @@ func menu() {
 			fmt.Println()
 
 			if char == 'Y' || char == 'y' {
-				// TODO: This
-				fmt.Println("still in dev")
+				keys, err := db.PullNextKey()
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				fmt.Println(keys)
 			} else {
 				continue
 			}
@@ -121,6 +127,10 @@ func menu() {
 			}
 
 		case '5':
+			fmt.Println("Starting server")
+			api.Server()
+
+		case '6':
 			os.Exit(0)
 
 		default:

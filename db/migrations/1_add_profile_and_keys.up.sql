@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS profiles;
 CREATE TABLE profiles(
     id SERIAL PRIMARY KEY,
     code_name VARCHAR (50) NOT NULL
+    used BOOLEAN DEFAULT FALSE;
 );
 
 DROP TABLE IF EXISTS keys;
