@@ -36,5 +36,5 @@ func Server() {
 	port := "9001"
 	serverStr := fmt.Sprintf("%s:%s", ip, port)
 
-	log.Fatal(http.ListenAndServe(serverStr, router))
+	log.Fatal(http.ListenAndServeTLS(serverStr, "server.crt", "server.key", router))
 }

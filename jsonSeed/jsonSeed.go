@@ -122,11 +122,26 @@ func CreateJsonSeed(keyNum int) {
 	fmt.Printf("%s Keys Generated\n", red(keyNum))
 	color.Unset()
 
-	jsonData, err := json.MarshalIndent(jsonList, "", " ")
+	_ = os.Remove("jsonSeed/koutput.json")
+	f, err := os.OpenFile("jsonSeed/koutput.json",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+	}
+	defer f.Close()
+
+	for _, jStr := range jsonList {
+		jsonData, err := json.Marshal(jStr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if _, err := f.Write(jsonData); err != nil {
+			log.Println(err)
+		}
+		_, _ = f.WriteString("\n")
 	}
 
+	jsonData, err := json.MarshalIndent(jsonList, "", " ")
 	err = ioutil.WriteFile("jsonSeed/output.json", jsonData, 0644)
 	if err != nil {
 		log.Fatal(err)
